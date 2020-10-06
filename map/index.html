@@ -28,6 +28,9 @@
 <script src="../js/leaflet.js"></script>
 <script src="../js/d3.v5.min.js"></script>
 
+<!-- Resides in info/index.html and map/index.html -->
+<script src="https://unpkg.com/topojson-client@3"></script>
+
 <!-- after d3 -->
 <script type="text/javascript" src="../js/map-filters.js"></script>
 <script type="text/javascript" src="../js/table-sort.js"></script>
@@ -76,7 +79,7 @@
   if (param["intro"] || param["show"] == "farmfresh") {
     //document.getElementById("readmeHolder").style.display = "block";
     //document.getElementById("readmeEdit").style.display = "block";
-    loadMarkdown("../map/starter/README.md", "introDiv", "_parent");
+    //loadMarkdown("../map/starter/README.md", "introDiv", "_parent");
   }
   if (param["design"] && param["show"] != "farmfresh") {
     document.getElementById("readmeHolder").style.display = "block";
@@ -94,15 +97,8 @@
 
 <!-- Start HTML -->
 
-<style>
-  svg{ max-width:none; } /* Fix for embedding material icon map points in Drupal */
-</style>
-
 <!-- FILTERS -->
-<!--
-  Sample indicator:weight hash value: #census=pop>180:25;edu:50;work:50;pov>15;ypov>10;apov>8;spov>4
-  https://datascape.github.io/community/#columns=population:31;education:50
--->
+<div class="search-filters-css" style="display:none">
 <div id="headerFixed" class="filterPanel">
   <div class="headerOffset headerOffsetOne">&nbsp;</div>
 
@@ -112,14 +108,44 @@
   <div id="activeLayer" style="display: none"></div>
 
  
-  <div id="filterFieldsHolder" class="contentfull noprint" style="margin:0 auto; padding-top:0px;">
+  <div id="filterFieldsHolder" class="contentfull noprint" style="margin:0 auto; padding-top:0px; overflow:auto">
     <div class="filterFields" style="min-height:54px; padding:2px 0 4px 0; float:left">
 
-      <div class="showApps local" style="display:none;float:left;">
-        <i class="material-icons" style="font-size:30px; color:#ccc; padding:10px 0px 4px 0px; cursor:pointer">&#xE5C3;</i>
+      <div id="showApps" class="local" style="display:none;float:left;">
+        <i class="material-icons">&#xE5C3;</i>
       </div>
 
-      <div style="display:none;" class="filterField mock-up suppliers exporter">
+      <div style="display:none;" class="filterField layerclass local">
+        <div id="catSearchHolder">
+          <div class="filterLabel">
+            <div class="filterLabelMain">
+            Layers
+            </div>
+          </div>
+
+
+            <div style="position:relative; float:left;">
+
+                <div class="select-menu-arrow-holder">
+                  <i class="material-icons" style="font-size:24px;cursor:pointer;display:none;">&#xE409;</i>
+                  <i class="material-icons" style="font-size:24px;cursor:pointer;">&#xE313;</i>
+                </div>
+                <!--
+                <select id="selectProduct" class="selectMenu" style="float:left">
+                    <option value="1">HS Code(s)</option>
+                </select>
+                -->
+
+                <!--
+                onkeyup="return SearchCategories(event);"
+                readonly - prevents keyboard covering choices on mobile
+                -->
+                <input readonly id="appMenu" class="filterClick mobileWide textInput" placeholder="Layers" type="text" autocomplete="off" style="width: 200px; margin-top: 0px;" />
+            </div>
+        </div>
+      </div>
+
+      <div style="display:none;" class="filterField layerclass mock-up suppliers exporter">
         <div id="catSearchHolder">
           <div class="filterLabel">
             <div class="filterLabelMain">
@@ -131,8 +157,8 @@
             <div style="position:relative; float:left;">
 
                 <div class="select-menu-arrow-holder">
-                  <i class="material-icons" style="font-size:24px;cursor:pointer;">&#xE409;</i>
-                  <i class="material-icons" style="font-size:24px;cursor:pointer;display:none;">&#xE313;</i>
+                  <i class="material-icons" style="font-size:24px;cursor:pointer;display:none;">&#xE409;</i>
+                  <i class="material-icons" style="font-size:24px;cursor:pointer;">&#xE313;</i>
                 </div>
                 <!--
                 <select id="selectProduct" class="selectMenu" style="float:left">
@@ -218,7 +244,7 @@
       <div style="float:left;">
 
 
-            <div style="overflow: visible;display:none" class="local filterField searchElements mock-up">
+            <div style="overflow:visible; display:none" class="filterField searchElements mock-up earth">
                 <div class="filterLabel">
                   <div class="filterLabelMain">
                     Where
@@ -260,7 +286,7 @@
                     </div>
                     -->
 
-                    <div class="filterBubble" style="pointer-events: auto;"><!-- Catch click through -->
+                    <div id="" class="filterBubble" style="pointer-events: auto;"><!-- Catch click through -->
                         <div class="hideAdvanced" style="float:right;cursor:pointer">&#10005;</div>
 
                         <input id="l" autocomplete="off" style="width:100%;max-width:400px;padding-right:27px;margin-bottom:10px" class="filterClick mobileWide textInput si-input" type="text" value="" onkeyup="return SearchEnter(event);" />
@@ -644,7 +670,7 @@
       <div style="clear:both"></div>
 
 
-      <div id="catsMobile" class="suppliers" style="display:none; margin:15px 20px 20px 0; float:left">
+      <div id="catsMobile" class="layerclass suppliers" style="display:none; margin:15px 20px 20px 0; float:left">
         <div id="catListClone" class="showMobileX" style="width:100%">
         </div>
       </div>
@@ -712,41 +738,14 @@
 
   </div>
   <!-- END CATEGORIES -->
+</div>
 
-
+<!-- Matches filterFields and headerFixed height -->
+<div class="headerOffset2" style="height:56px">&nbsp;</div>
 </div>
 <!-- END FILTERS -->
 
 
-<!-- Matches filterFields and headerFixed height -->
-<div class="headerOffset2" style="height:56px">&nbsp;</div>
-
-<div id="pageLinksHolder" class="content contentpadding" style="display:none; padding-top:0; padding-bottom:0">
-  <br>
-    
-    <div style="float:right; padding: 12px 0px 10px 0" class="noprint hideMobile">
-      <a href="https://neighborhood.org/io/charts/">About Widgets</a>
-    </div>
-    <!--
-      class="mainColumn mainColumn1" 
-    -->
-       <div id="pageLinksInsert" style="displayX:none; float:left; font-size: 15px; padding: 12px 30px 10px 0">
-            <a onClick="go({}); return false;"  href="./">Overview</a> | 
-            <a onClick="goHash({'go':'bioeconomy','show':''}); return false;" href="./#go=bioeconomy">Bioeconomy</a> | 
-            <span class="local" style="display:none">
-            <a onClick="go({'go':'','show':'farmfresh'}); return false;" href="./#show=farmfresh">Fresh Produce</a> | 
-            </span>
-            <a onClick="goHash({'go':'manufacturing','show':''}); return false;" href="./#go=manufacturing">Manufacturing</a> | 
-            <a onClick="goHash({'go':'parts','show':''}); return false;" href="./#go=parts">Parts Manufacturing</a> | 
-            <span class="local" style="display:none">
-            <a onClick="goHash({'go':'','show':'suppliers'}); return false;" href="./#show=suppliers">PPE Suppliers</a> | 
-            </span>
-            <a onClick="goHash({'geomap':'true'}); return false;" href="./#geomap=US13">County&nbsp;Map</a>
-            <br>
-        </div>
-
-  
-</div>
 
 <!-- Settings Panel -->
 <div class="settingsPanel topMenuOffset floater" style="display:none; position:fixed">
@@ -913,7 +912,7 @@
   <div class="user-5" style="display:none">
     <hr>Staff only - 
     <a href="/maps/leaflet/providers/preview/" target="basemaps">View Basemaps</a> | 
-    <a href="/community/impact/json/menu.json">View JSON</a><br>
+    <a href="/community-data/us/state/GA/ga-layers.json">View JSON</a><br>
     <div class="settingAdminNotes"></div>
   </div>
 
@@ -922,10 +921,70 @@
 
 <div style="clear:both"></div>
 
+<!-- APP MENU -->
+<!-- From map-filters.js displayBigThumbnails function -->
+<!-- Currently map-filters.js limits loading to localhost -->
+<div class="search-filters-css" style="display:none">
+<div id="honeycombPanelHolder" style="display:none;position: relative;">
+  <div class="hideApps" style="position:absolute;right:0;top:0;cursor:pointer;padding:15px 20px 15px 15px;font-size:19px;color:#ccc;z-index:1">✕</div>
+
+  <div style="overflow:auto;position:relative">
+  <a name="sections"></a>
+  <div id="honeycombPanel" style="display: block;">
+    
+    <!--
+    <div style="float:left;display:flex;justify-content:left;">
+      
+      </div>
+    -->
+
+      <div class="bigThumbMenu" style="margin:0 auto; "></div>
+
+      <div id="honeyMenuHolder" style="display:none">
+        <div id="honeycombMenu"></div>
+      </div>
+
+        <br><br>
+     
+
+  </div>
+  </div>
+</div>
+</div>
+<div style="clear:both"></div>
+<!-- /APP MENU -->
+
+
+
+<div id="pageLinksHolder" class="content contentpadding" style="display:none; padding-top:0; padding-bottom:0">
+  <br>
+    
+    <div style="float:right; padding: 12px 0px 10px 0" class="noprint hideMobile">
+      <a href="https://model.earth/io/charts/">About Widgets</a>
+    </div>
+    <!--
+      class="mainColumn mainColumn1" 
+    -->
+     <div id="pageLinksInsert" style="displayX:none; float:left; font-size: 15px; padding: 12px 30px 10px 0">
+          <a onClick="go({}); return false;"  href="./">Overview</a> | 
+          <a onClick="goHash({'go':'bioeconomy','show':''}); return false;" href="./#go=bioeconomy">Bioeconomy</a> | 
+          <span class="local" style="display:none">
+          <a onClick="go({'go':'','show':'farmfresh'}); return false;" href="./#show=farmfresh">Fresh Produce</a> | 
+          </span>
+          <a onClick="goHash({'go':'manufacturing','show':''}); return false;" href="./#go=manufacturing">Manufacturing</a> | 
+          <a onClick="goHash({'go':'parts','show':''}); return false;" href="./#go=parts">Parts Manufacturing</a> 
+          <span class="local" style="display:none"> | 
+          <a onClick="goHash({'go':'','show':'suppliers'}); return false;" href="./#show=suppliers">PPE Suppliers</a> | 
+          </span>
+          <a style="display:none" onClick="goHash({'geomap':'true'}); return false;" href="./#geomap=US13">County&nbsp;Map</a>
+          <br>
+      </div>
+</div>
+
 
 <div class="displayOnload" style="display:none;position:relative">
 <div id="map1"></div>
-<div id="legendHolder">
+<div id="legendHolder" style="">
   <div id="allLegends"></div>
 </div>
 </div>
@@ -1003,7 +1062,7 @@
 </div>
 <!-- /INDUSTRIES -->
 
-<div style="display:none;margin:20px 10px 20px 17px; min-width:195px; line-height: 1.5em;" class="suppliers">
+<div style="display:none;margin:20px 10px 20px 17px; min-width:195px; line-height: 1.5em;" class="layerclass suppliers">
   <div class="catList" id="industryCatList">
     <div>All Categories</div>
     <div>Air Purifying Machines</div>
@@ -1032,27 +1091,6 @@
 
 <div id="list_main" style="overflow:auto; background: #fff">
 
-<!-- APP MENU -->
-<!-- From map-filters.js displayBigThumbnails function -->
-<!-- Currently map-filters.js limits loading to localhost -->
-<div id="honeycombPanelHolder" style="display:none; margin-top:30px; margin-bottom:50px;">
-  
-  <!--div id="honeycombPanel"-->
-  <div id="honeycombPanel" style="display: block;">
-    <a name="sections"></a>
-    
-    <div class="bigThumbMenu widthColumns" style="margin:0 auto; "></div>
-
-    <div id="honeyMenuHolder" style="display:none">
-      <div id="honeycombMenu"></div>
-    </div>
-
-      <br><br>
-      
-  </div>
-</div>
-<div style="clear:both"></div>
-<!-- /APP MENU -->
 
 
 <section class="data-section" id="data" style="overflow:auto">
@@ -1065,21 +1103,23 @@
         <h1 class="listTitle" style="display:none;margin-bottom:12px"></h1>
         <h2 class="listSubtitle" style="display:none"></h2>
 
-        <div style="display:none" class="suppliers">
+        <div style="display:none" class="layerclass farmfresh">
           
 
-          <div id="legendLingsHolder" class="localonly" style="display:none;margin-bottom: 20px">
+          <div id="legendLingsHolder" style="margin-bottom: 20px">
             <div class="legendLink">
               <div class="legendLinkRect" style="background:#1f78b4;"></div>
-              <div style="margin-right:16px;float:left">MANUFACTURERS</div>
+              <div style="margin-right:16px;float:left">FARMERS MARKETS</div>
             </div>
+            <!--
             <div class="legendLink">
               <div class="legendLinkRect" style="background:#b2df8a;"></div>
               <div style="margin-right:16px;float:left">DISTRIBUTORS</div>
             </div>
+            -->
             <div class="legendLink">
               <div class="legendLinkRect" style="background:#a6cee3;"></div>
-              <div style="margin-right:16px;float:left">BOTH</div>
+              <div style="margin-right:16px;float:left">ON FARM SALES</div>
             </div>
             <div style="clear:both"></div>
           </div>
@@ -1200,7 +1240,7 @@
 
         </div>
 
-        <div id="disclaimerText" class="suppliers" style="display:none;margin-right:20px;font-size: 12px;">
+        <div id="disclaimerText" class="layerclass suppliers" style="display:none;margin-right:20px;font-size: 12px;">
           <b>Disclaimer:</b>  The Georgia Department of Economic Development (GDEcD) is collecting information from Georgia companies that indicate they are producing essential medical supplies in response to the COVID-19 pandemic. GDEcD is sharing these companies’ information with Georgia’s units of local government and other potential in-state buyers of these essential medical supplies merely as a courtesy. The following product information and addresses were submitted by private companies to GDEcD, and this list does not constitute an endorsement of any particular company or product by the State or by GDEcD.  GDEcD does not make any representations or warranties as to the accuracy of this information, or as to the quality or quantity of the products offered by these companies. Buyers use this information at their own risk.  Buyers are encouraged to contact the companies directly, for product specifications, delivery options, and other information required for executing a purchase.  Buyers are cautioned to make their own determinations regarding supplier responsibility, including but not limited to assessing whether the supplier has appropriate financial, organization and operational capacity, appropriate legal authority to do business in Georgia, a satisfactory record of integrity, and an acceptable performance record on past contracts.
         </div>
 
@@ -1340,6 +1380,21 @@ To add and update listings, download the <a href="map.csv">map.csv</a> file and 
 'use strict'; // Optional, makes sure we are declaring variables.
 
 
+
+$(document).ready(function () {
+  //alert(param.show)
+  //if(!param.show) {
+    setTimeout( function() {
+      $("#showApps").trigger( "click" );
+      console.log(".showApps from map/index.html");
+    }, 800 );
+  //}
+
+  $("#showApps").removeClass("local");
+  $("#showApps").show();
+
+});
+
 // COMMON - also resides in embed-map.js
 function loadScript(url, callback)
 {
@@ -1369,7 +1424,9 @@ dual_map.init(["somevalue", 1, "controlId"]); // Used by link to feedback form
 //dual_map.community_root();
 
 console.log("This page replaces community/impact. Call loadMap1() in map.js but we need dp. Also below.");
-param.show = "farmfresh"; // Used by loadFromCSV which is called by loadMap1
+if (!param.show) {
+  param.show = "farmfresh"; // Used by loadFromCSV which is called by loadMap1
+}
 var localmap = loadMap1(dp);
 
 // Append railroads here, somehow
